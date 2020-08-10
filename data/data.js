@@ -1,4 +1,4 @@
-const data2 = {
+const data = {
     name: "flare",
     shortName: "flare",
     children: [
@@ -1055,7 +1055,7 @@ const data2 = {
                         {
                             name: "Legend",
                             shortName: "Legend",
-                            size: 10000,
+                            size: 20859,
                         },
                         {
                             name: "LegendItem",

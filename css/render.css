@@ -1,17 +1,17 @@
 @charset "utf-8";
-body { margin:0; position:fixed; top:0; right:0; bottom:0; left:0; user-select: none;}
+body { margin:0; position:fixed; top:0; right:0; bottom:0; left:0; user-select: none; }
 
 /* text */
 text { pointer-events: none; }
-.grandparent text { font-weight: bold; }
+.chartBar text { font-weight: bold; fill:#fff; }
 
-/* parent, grandparent */
+/* parent, chartBar */
 rect { fill: none; stroke: #fff; }
 rect.parent,
-.grandparent rect { stroke-width: 2px; }
-.grandparent rect { fill: orange; }
-.grandparent:hover rect { fill: #ee9700; }
-.grandparent rect { cursor: pointer; }
+.chartBar rect { stroke-width: 2px; }
+.chartBar rect { fill: orange; }
+.chartBar:hover rect { fill: #ee9700; }
+.chartBar rect { cursor: pointer; }
 
 /* children */
 .children rect.parent,

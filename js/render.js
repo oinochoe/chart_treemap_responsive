@@ -1,12 +1,14 @@
 (function () {
     "use strict";
     const margin = { top: 24, right: 0, bottom: 0, left: 0 };
-    const width = 1200;
-    const height = 530;
+    const width = 1000;
+    const height = 1500;
     const formatNumber = d3.format(",d");
+    const testData = data;
 
-    let treemap;
-    let svg, grandparent;
+    let chartTree;
+    let svg;
+    let chartBar;
     let transitioning;
 
     // 상승 금색, 하락 네이비
@@ -23,24 +25,33 @@
         .domain([0, height - margin.top - margin.bottom])
         .range([0, height - margin.top - margin.bottom]);
 
-    const colorMap = ["#F3B448", "#212348"];
+    const colorMap = ["#212348", "#3681C4", "#1D8F59", "#F3B448", "#DA4747"];
 
     const color = d3.scaleOrdinal().range(
         colorMap.map(function (c) {
             c = d3.rgb(c);
-            c.opacity = 0.6;
+            c.opacity = 0.8;
             return c;
         })
     );
 
-    updateDrillDown();
+    const initialState = d3
+        .hierarchy(testData)
+        .eachBefore(function (d) {
+            d.id = (d.parent ? d.parent.id + "." : "") + d.data.shortName;
+        })
+        .sum((d) => d.size)
+        .sort(function (a, b) {
+            return b.height - a.height || b.value - a.value;
+        });
 
-    function updateDrillDown() {
+    // init
+    const valueChartInit = () => {
         if (svg) {
             svg.selectAll("*").remove();
         } else {
             svg = d3
-                .select("#domainDrillDown")
+                .select(".js-domain")
                 .append("svg")
                 .attr("width", width - margin.left - margin.right)
                 .attr("height", height - margin.bottom - margin.top)
@@ -53,21 +64,22 @@
                 )
                 .style("shape-rendering", "crispEdges");
 
-            grandparent = svg.append("g").attr("class", "grandparent");
+            chartBar = svg.append("g").attr("class", "chartBar");
 
-            grandparent
+            chartBar
                 .append("rect")
                 .attr("y", -margin.top)
                 .attr("width", width)
                 .attr("height", margin.top);
 
-            grandparent
+            chartBar
                 .append("text")
-                .attr("x", 6)
-                .attr("y", 6 - margin.top)
-                .attr("dy", ".75em");
+                .attr("x", 6) // 차트 제목 x 좌표
+                .attr("y", 6 - margin.top) // 차트 제목 y 좌표
+                .attr("dy", ".75em"); // 차트 제목 전체 높이
 
-            treemap = d3
+            // 차트 트리 분포도
+            chartTree = d3
                 .treemap()
                 .tile(
                     d3.treemapResquarify.ratio(
@@ -76,80 +88,64 @@
                 )
                 .size([width, height])
                 .round(false)
-                .paddingInner(1);
+                .paddingInner(0);
         }
 
-        var root = d3
-            .hierarchy(data2)
-            .eachBefore(function (d) {
-                d.id = (d.parent ? d.parent.id + "." : "") + d.data.shortName;
-            })
-            .sum((d) => d.size)
-            .sort(function (a, b) {
-                console.log("initial root sort a " + a.value + " b " + b.value);
-                return b.height - a.height || b.value - a.value;
-            });
+        initialize(initialState);
+        accumulate(initialState);
+        chartLayout(initialState);
+        chartTree(initialState);
+        chartDisplay(initialState);
+    };
 
-        initialize(root);
-        accumulate(root);
-        layout(root);
-        treemap(root);
-        display(root);
-    }
+    const initialize = (defValue) => {
+        defValue.x = defValue.y = 0;
+        defValue.x1 = width;
+        defValue.y1 = height;
+        defValue.depth = 0;
+    };
 
-    function initialize(root) {
-        root.x = root.y = 0;
-        root.x1 = width;
-        root.y1 = height;
-        root.depth = 0;
-    }
-
-    function accumulate(d) {
-        console.log("accumulate called " + d.data.name);
-        return (d._children = d.children)
-            ? (d.value = d.children.reduce(function (p, v) {
+    const accumulate = (defValue) => {
+        return (defValue._children = defValue.children)
+            ? (defValue.value = defValue.children.reduce(function (p, v) {
                   return p + accumulate(v);
               }, 0))
-            : d.value;
-    }
+            : defValue.value;
+    };
 
-    function layout(d) {
-        if (d._children) {
-            d._children.forEach(function (c) {
-                c.x0 = d.x0 + c.x0 * d.x1;
-                c.y0 = d.y0 + c.y0 * d.y1;
-                c.x1 *= d.x1 - d.x0;
-                c.y1 *= d.y1 - d.y0;
-                c.parent = d;
-                layout(c);
+    const chartLayout = (defValue) => {
+        if (defValue._children) {
+            defValue._children.forEach((c) => {
+                c.x0 = defValue.x0 + c.x0 * defValue.x1;
+                c.y0 = defValue.y0 + c.y0 * defValue.y1;
+                c.x1 *= defValue.x1 - defValue.x0;
+                c.y1 *= defValue.y1 - defValue.y0;
+                c.parent = defValue;
+                chartLayout(c);
             });
         }
-    }
+    };
 
-    function display(d) {
-        grandparent
+    const chartDisplay = (d) => {
+        chartBar
             .datum(d.parent)
             .on("click", transition)
             .select("text")
-            .text(name(d));
+            .text(chartName(d));
 
-        var g1 = svg
-            .insert("g", ".grandparent")
-            .datum(d)
-            .attr("class", "depth");
+        const g1 = svg.insert("g", ".chartBar").datum(d).attr("class", "depth");
+        const g = g1.selectAll("g").data(d._children).enter().append("g");
 
-        var g = g1.selectAll("g").data(d._children).enter().append("g");
-
-        g.filter(function (d) {
-            return d._children;
+        g.filter(function (datum) {
+            return datum._children;
         })
             .classed("children", true)
             .on("click", transition);
 
-        var children = g
+        const children = g
             .selectAll(".child")
-            .data(function (d) {
-                return d._children || [d];
+            .data(function (datum) {
+                return datum._children || [datum];
             })
             .enter()
             .append("g");
@@ -157,68 +153,76 @@
         children
             .append("rect")
             .attr("class", "child")
-            .call(rect)
+            .call(rectangluar)
             .append("title")
-            .text(function (d) {
-                return d.data.shortName + " (" + formatNumber(d.value) + ")";
+            .text(function (datum) {
+                return (
+                    datum.data.shortName +
+                    " (" +
+                    formatNumber(datum.value) +
+                    ")"
+                );
             });
 
         children
             .append("text")
             .attr("class", "ctext")
-            .text(function (d) {
-                return d.data.shortName;
+            .text(function (datum) {
+                return datum.data.shortName;
             })
-            .call(text2);
+            .call(textPositionBottom);
 
-        g.append("rect").attr("class", "parent").call(rect);
+        g.append("rect").attr("class", "parent").call(rectangluar);
 
-        var t = g.append("text").attr("class", "ptext").attr("dy", ".75em");
+        const t = g.append("text").attr("class", "ptext").attr("dy", ".75em");
 
-        t.append("tspan").text(function (d) {
-            return d.data.shortName;
+        t.append("tspan").text(function (datum) {
+            return datum.data.shortName;
         });
 
         t.append("tspan")
             .attr("dy", "1.0em")
-            .text(function (d) {
-                return formatNumber(d.value);
+            .text(function (datum) {
+                return formatNumber(datum.value);
             });
 
-        t.call(text);
+        t.call(textPositionTop);
 
-        g.selectAll("rect").style("fill", function (d) {
-            return color(d.data.shortName);
+        g.selectAll("rect").style("fill", function (datum) {
+            return color(datum.data.shortName);
         });
 
-        function transition(d) {
-            if (transitioning || !d) return;
+        function transition(datum) {
+            if (transitioning || !datum) return;
             transitioning = true;
-            var g2 = display(d),
-                t1 = g1.transition().duration(750),
-                t2 = g2.transition().duration(750);
-            x.domain([d.x0, d.x0 + (d.x1 - d.x0)]);
-            y.domain([d.y0, d.y0 + (d.y1 - d.y0)]);
+            const g2 = chartDisplay(datum),
+                t1 = g1.transition().duration(500),
+                t2 = g2.transition().duration(500);
+            x.domain([datum.x0, datum.x0 + (datum.x1 - datum.x0)]);
+            y.domain([datum.y0, datum.y0 + (datum.y1 - datum.y0)]);
 
-            // Enable anti-aliasing during the transition.
             svg.style("shape-rendering", null);
 
-            // Draw child nodes on top of parent nodes.
-            svg.selectAll(".depth").sort(function (a, b) {
-                console.log(".depth sort a " + a.depth + " b " + b.depth);
+            svg.selectAll(".depth").sort((a, b) => {
                 return a.depth - b.depth;
             });
 
-            // Fade-in entering text.
             g2.selectAll("text").style("fill-opacity", 0);
 
-            // Transition to the new view.
-            t1.selectAll(".ptext").call(text).style("fill-opacity", 0);
-            t2.selectAll(".ptext").call(text).style("fill-opacity", 1);
-            t1.selectAll(".ctext").call(text2).style("fill-opacity", 0);
-            t2.selectAll(".ctext").call(text2).style("fill-opacity", 1);
-            t1.selectAll("rect").call(rect);
-            t2.selectAll("rect").call(rect);
+            t1.selectAll(".ptext")
+                .call(textPositionTop)
+                .style("fill-opacity", 0);
+            t2.selectAll(".ptext")
+                .call(textPositionTop)
+                .style("fill-opacity", 1);
+            t1.selectAll(".ctext")
+                .call(textPositionBottom)
+                .style("fill-opacity", 0);
+            t2.selectAll(".ctext")
+                .call(textPositionBottom)
+                .style("fill-opacity", 1);
+            t1.selectAll("rect").call(rectangluar);
+            t2.selectAll("rect").call(rectangluar);
 
             // Remove the old node when the transition is finished.
             t1.remove().on("end", function () {
@@ -227,50 +231,40 @@
             });
         }
         return g;
-    }
+    };
 
-    function text(text) {
-        text.selectAll("tspan").attr("x", function (d) {
+    const textPositionTop = (datum) => {
+        datum.selectAll("tspan").attr("x", function (d) {
             return x(d.x0) + 6;
         });
-        text.attr("x", function (d) {
-            return x(d.x0) + 6;
-        })
+        datum
+            .attr("x", function (d) {
+                return x(d.x0) + 6;
+            })
             .attr("y", function (d) {
                 return y(d.y0) + 3;
             })
             .style("opacity", function (d) {
                 var w = x(d.x1) - x(d.x0);
-                console.log(
-                    "text opacity setting textlength " +
-                        this.getComputedTextLength() +
-                        " d size " +
-                        w
-                );
                 return this.getComputedTextLength() < w - 6 ? 1 : 0;
             });
-    }
+    };
 
-    function text2(text) {
-        text.attr("x", function (d) {
-            return x(d.x1) - this.getComputedTextLength() - 6;
-        })
+    const textPositionBottom = (datum) => {
+        datum
+            .attr("x", function (d) {
+                return x(d.x1) - this.getComputedTextLength() - 6;
+            })
             .attr("y", function (d) {
                 return y(d.y1) - 6;
             })
             .style("opacity", function (d) {
                 var w = x(d.x1) - x(d.x0);
-                console.log(
-                    "text2 opacity setting textlength " +
-                        this.getComputedTextLength() +
-                        " d size " +
-                        w
-                );
                 return this.getComputedTextLength() < w - 6 ? 1 : 0;
             });
-    }
+    };
 
-    function rect(rect) {
+    const rectangluar = (rect) => {
         rect.attr("x", function (d) {
             return x(d.x0);
         })
@@ -279,24 +273,24 @@
             })
             .attr("width", function (d) {
                 var w = x(d.x1) - x(d.x0);
-                console.log("id " + d.id + " rect width " + w);
                 return w;
             })
             .attr("height", function (d) {
                 var h = y(d.y1) - y(d.y0);
-                console.log("id " + d.id + " rect height " + h);
                 return h;
             });
-    }
+    };
 
-    function name(d) {
-        return d.parent
-            ? name(d.parent) +
+    const chartName = (datum) => {
+        return datum.parent
+            ? chartName(datum.parent) +
                   " / " +
-                  d.data.shortName +
+                  datum.data.shortName +
                   " (" +
-                  formatNumber(d.value) +
+                  formatNumber(datum.value) +
                   ")"
-            : d.data.shortName + " (" + formatNumber(d.value) + ")";
-    }
+            : datum.data.shortName + " (" + formatNumber(datum.value) + ")";
+    };
+
+    valueChartInit();
 })();
