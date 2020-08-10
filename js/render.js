@@ -1,10 +1,11 @@
 (function () {
     "use strict";
     const margin = { top: 24, right: 0, bottom: 0, left: 0 };
-    const width = 1000;
+    const width = 1200;
     const height = 700;
     const formatNumber = d3.format(",d");
     const testData = data;
+    const speed = 300;
 
     let chartTree;
     let svg;
@@ -42,7 +43,7 @@
     const color = d3.scaleOrdinal().range(
         colorMap.map(function (c) {
             c = d3.rgb(c);
-            c.opacity = 0.9;
+            c.opacity = 0.95;
             return c;
         })
     );
@@ -201,15 +202,15 @@
         t.call(textPositionTop);
 
         g.selectAll("rect").style("fill", function (datum) {
-            return color(datum.data.shortName);
+            return color(datum.data.size || datum.data.size);
         });
 
         function transition(datum) {
             if (transitioning || !datum) return;
             transitioning = true;
             const g2 = chartDisplay(datum),
-                t1 = g1.transition().duration(500),
-                t2 = g2.transition().duration(500);
+                t1 = g1.transition().duration(speed),
+                t2 = g2.transition().duration(speed);
             x.domain([datum.x0, datum.x0 + (datum.x1 - datum.x0)]);
             y.domain([datum.y0, datum.y0 + (datum.y1 - datum.y0)]);
 
