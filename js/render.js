@@ -2,7 +2,7 @@
     "use strict";
     const margin = { top: 24, right: 0, bottom: 0, left: 0 };
     const width = 1000;
-    const height = 1500;
+    const height = 700;
     const formatNumber = d3.format(",d");
     const testData = data;
 
@@ -25,12 +25,24 @@
         .domain([0, height - margin.top - margin.bottom])
         .range([0, height - margin.top - margin.bottom]);
 
-    const colorMap = ["#212348", "#3681C4", "#1D8F59", "#F3B448", "#DA4747"];
+    const colorMap = [
+        "#4e74b2",
+        "#3e5b94",
+        "#223162",
+        "#282e4a",
+        "#3e3f4c",
+        "#4b4944",
+        "#ae8f59",
+        "#d8ad62",
+        "#dcaf5c",
+        "#dfb257",
+        "#e2b752",
+    ];
 
     const color = d3.scaleOrdinal().range(
         colorMap.map(function (c) {
             c = d3.rgb(c);
-            c.opacity = 0.8;
+            c.opacity = 0.9;
             return c;
         })
     );

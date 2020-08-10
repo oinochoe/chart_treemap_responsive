@@ -15,5 +15,5 @@ rect.parent,
 
 /* children */
 .children rect.parent,
-.children rect.parent { fill: #bbb; fill-opacity: 0.5; }
+.children rect.parent { fill: #bbb; fill-opacity: 1; }
 .children:hover rect.child { fill: #bbb; }
