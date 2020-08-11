@@ -1,7 +1,7 @@
 (function () {
     "use strict";
-    const width = 1000;
-    const height = 1000;
+    const width = 100;
+    const height = 100;
     const formatNumber = d3.format(",d");
     const testData = data;
     const speed = 300;
@@ -63,8 +63,8 @@
             svg = d3
                 .select(".js-domain")
                 .append("svg")
-                .attr("width", width)
-                .attr("height", height)
+                .attr("width", width + "%")
+                .attr("height", height + "vh")
                 .append("g")
                 .style("shape-rendering", "crispEdges");
 
@@ -87,7 +87,7 @@
                 .treemap()
                 .tile(
                     d3.treemapResquarify.ratio(
-                        (height / width) * 0.5 * (1 + Math.sqrt(5))
+                        (height + "%" / width + "%") * 0.5 * (1 + Math.sqrt(5))
                     )
                 )
                 .size([width, height])
@@ -173,24 +173,19 @@
             .attr("class", "ctext")
             .text(function (datum) {
                 return datum.data.shortName;
-            })
-            .call(textPositionBottom);
+            });
 
         g.append("rect").attr("class", "parent").call(rectangluar);
 
-        const t = g.append("text").attr("class", "ptext").attr("dy", ".75em");
+        const t = g.append("text").attr("class", "ptext");
 
         t.append("tspan").text(function (datum) {
             return datum.data.shortName;
         });
 
-        t.append("tspan")
-            .attr("dy", "1.0em")
-            .text(function (datum) {
-                return formatNumber(datum.value);
-            });
-
-        t.call(textPositionTop);
+        t.append("tspan").text(function (datum) {
+            return formatNumber(datum.value);
+        });
 
         g.selectAll("rect").style("fill", function (datum) {
             return color(datum.data.size || datum.value);
@@ -213,18 +208,10 @@
 
             g2.selectAll("text").style("fill-opacity", 0);
 
-            t1.selectAll(".ptext")
-                .call(textPositionTop)
-                .style("fill-opacity", 0);
-            t2.selectAll(".ptext")
-                .call(textPositionTop)
-                .style("fill-opacity", 1);
-            t1.selectAll(".ctext")
-                .call(textPositionBottom)
-                .style("fill-opacity", 0);
-            t2.selectAll(".ctext")
-                .call(textPositionBottom)
-                .style("fill-opacity", 1);
+            t1.selectAll(".ptext").style("fill-opacity", 0);
+            t2.selectAll(".ptext").style("fill-opacity", 1);
+            t1.selectAll(".ctext").style("fill-opacity", 0);
+            t2.selectAll(".ctext").style("fill-opacity", 1);
             t1.selectAll("rect").call(rectangluar);
             t2.selectAll("rect").call(rectangluar);
 
@@ -237,51 +224,20 @@
         return g;
     };
 
-    const textPositionTop = (datum) => {
-        datum.selectAll("tspan").attr("x", function (d) {
-            return x(d.x0) + 6;
-        });
-        datum
-            .attr("x", function (d) {
-                return x(d.x0) + 6;
-            })
-            .attr("y", function (d) {
-                return y(d.y0) + 3;
-            })
-            .style("opacity", function (d) {
-                var w = x(d.x1) - x(d.x0);
-                return this.getComputedTextLength() < w - 6 ? 1 : 0;
-            });
-    };
-
-    const textPositionBottom = (datum) => {
-        datum
-            .attr("x", function (d) {
-                return x(d.x1) - this.getComputedTextLength() - 6;
-            })
-            .attr("y", function (d) {
-                return y(d.y1) - 6;
-            })
-            .style("opacity", function (d) {
-                var w = x(d.x1) - x(d.x0);
-                return this.getComputedTextLength() < w - 6 ? 1 : 0;
-            });
-    };
-
     const rectangluar = (rect) => {
         rect.attr("x", function (d) {
-            return x(d.x0);
+            return x(d.x0) + "%";
         })
             .attr("y", function (d) {
-                return y(d.y0);
+                return y(d.y0) + "%";
             })
             .attr("width", function (d) {
                 var w = x(d.x1) - x(d.x0);
-                return w;
+                return w + "%";
             })
             .attr("height", function (d) {
                 var h = y(d.y1) - y(d.y0);
-                return h;
+                return h + "%";
             });
     };
 
