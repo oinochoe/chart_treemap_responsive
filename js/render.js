@@ -1,11 +1,11 @@
 (function () {
     "use strict";
-    const margin = { top: 24, right: 0, bottom: 0, left: 0 };
-    const width = 1200;
-    const height = 700;
+    const width = 1000;
+    const height = 1000;
     const formatNumber = d3.format(",d");
     const testData = data;
     const speed = 300;
+    const barHeight = 70;
 
     let chartTree;
     let svg;
@@ -21,10 +21,7 @@
     // 다크모드일 때 색상 정하기
 
     const x = d3.scaleLinear().domain([0, width]).range([0, width]);
-    const y = d3
-        .scaleLinear()
-        .domain([0, height - margin.top - margin.bottom])
-        .range([0, height - margin.top - margin.bottom]);
+    const y = d3.scaleLinear().domain([0, height]).range([0, height]);
 
     const colorMap = [
         "#4e74b2",
@@ -66,29 +63,23 @@
             svg = d3
                 .select(".js-domain")
                 .append("svg")
-                .attr("width", width - margin.left - margin.right)
-                .attr("height", height - margin.bottom - margin.top)
-                .style("margin-left", -margin.left + "px")
-                .style("margin.right", -margin.right + "px")
+                .attr("width", width)
+                .attr("height", height)
                 .append("g")
-                .attr(
-                    "transform",
-                    "translate(" + margin.left + "," + margin.top + ")"
-                )
                 .style("shape-rendering", "crispEdges");
 
             chartBar = svg.append("g").attr("class", "chartBar");
 
             chartBar
                 .append("rect")
-                .attr("y", -margin.top)
+                .attr("y", 0)
                 .attr("width", width)
-                .attr("height", margin.top);
+                .attr("height", barHeight);
 
             chartBar
                 .append("text")
                 .attr("x", 6) // 차트 제목 x 좌표
-                .attr("y", 6 - margin.top) // 차트 제목 y 좌표
+                .attr("y", 6) // 차트 제목 y 좌표
                 .attr("dy", ".75em"); // 차트 제목 전체 높이
 
             // 차트 트리 분포도
@@ -202,7 +193,7 @@
         t.call(textPositionTop);
 
         g.selectAll("rect").style("fill", function (datum) {
-            return color(datum.data.size || datum.data.size);
+            return color(datum.data.size || datum.value);
         });
 
         function transition(datum) {
