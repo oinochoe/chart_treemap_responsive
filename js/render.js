@@ -40,7 +40,7 @@
     const color = d3.scaleOrdinal().range(
         colorMap.map(function (c) {
             c = d3.rgb(c);
-            c.opacity = 0.95;
+            c.opacity = 0.85;
             return c;
         })
     );
@@ -173,24 +173,27 @@
             .attr("class", "ctext")
             .text(function (datum) {
                 return datum.data.shortName;
-            });
+            })
+            .call(textPositionBottom);
 
         g.append("rect").attr("class", "parent").call(rectangluar);
 
-        const t = g.append("text").attr("class", "ptext").attr("dy", "50%");
+        const t = g.append("text").attr("class", "ptext").attr("dy", ".75em");
 
         t.append("tspan").text(function (datum) {
             return datum.data.shortName;
         });
 
         t.append("tspan")
-            .attr("dy", "50%")
+            .attr("dy", "1.0em")
             .text(function (datum) {
                 return formatNumber(datum.value);
             });
 
+        t.call(textPositionTop);
+
         g.selectAll("rect").style("fill", function (datum) {
-            return color(datum.data.size || datum.value);
+            return color(datum.value);
         });
 
         function transition(datum) {
@@ -210,10 +213,18 @@
 
             g2.selectAll("text").style("fill-opacity", 0);
 
-            t1.selectAll(".ptext").style("fill-opacity", 0);
-            t2.selectAll(".ptext").style("fill-opacity", 1);
-            t1.selectAll(".ctext").style("fill-opacity", 0);
-            t2.selectAll(".ctext").style("fill-opacity", 1);
+            t1.selectAll(".ptext")
+                .call(textPositionTop)
+                .style("fill-opacity", 0);
+            t2.selectAll(".ptext")
+                .call(textPositionTop)
+                .style("fill-opacity", 1);
+            t1.selectAll(".ctext")
+                .call(textPositionBottom)
+                .style("fill-opacity", 0);
+            t2.selectAll(".ctext")
+                .call(textPositionBottom)
+                .style("fill-opacity", 1);
             t1.selectAll("rect").call(rectangluar);
             t2.selectAll("rect").call(rectangluar);
 
@@ -224,6 +235,37 @@
             });
         }
         return g;
+    };
+
+    const textPositionTop = (datum) => {
+        datum.selectAll("tspan").attr("x", function (d) {
+            return x(d.x0) + 0.5 + "%";
+        });
+        datum
+            .attr("x", function (d) {
+                return x(d.x0) + "%";
+            })
+            .attr("y", function (d) {
+                return y(d.y0) + 1 + "%";
+            });
+        /*  .style("opacity", function (d) {
+                var w = x(d.x1) - x(d.x0);
+                return this.getComputedTextLength() < w ? 1 : 0;
+            }); */
+    };
+
+    const textPositionBottom = (datum) => {
+        datum
+            .attr("x", function (d) {
+                return x(d.x1) - this.getComputedTextLength() + "%";
+            })
+            .attr("y", function (d) {
+                return y(d.y1) + "%";
+            })
+            .style("opacity", function (d) {
+                var w = x(d.x1) - x(d.x0);
+                return this.getComputedTextLength() < w ? 1 : 0;
+            });
     };
 
     const rectangluar = (rect) => {
