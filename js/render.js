@@ -177,15 +177,17 @@
 
         g.append("rect").attr("class", "parent").call(rectangluar);
 
-        const t = g.append("text").attr("class", "ptext");
+        const t = g.append("text").attr("class", "ptext").attr("dy", "50%");
 
         t.append("tspan").text(function (datum) {
             return datum.data.shortName;
         });
 
-        t.append("tspan").text(function (datum) {
-            return formatNumber(datum.value);
-        });
+        t.append("tspan")
+            .attr("dy", "50%")
+            .text(function (datum) {
+                return formatNumber(datum.value);
+            });
 
         g.selectAll("rect").style("fill", function (datum) {
             return color(datum.data.size || datum.value);
