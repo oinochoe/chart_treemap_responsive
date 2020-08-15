@@ -1,28 +1,12 @@
 (function () {
     "use strict";
-    const width = 100;
-    const height = 100;
-    const formatNumber = d3.format(",d");
-    const testData = data;
-    const speed = 300;
-    const barHeight = 70;
-
-    let chartTree;
-    let svg;
-    let chartBar;
-    let transitioning;
-
-    // 상승 금색, 하락 네이비
-    // 11 개 -> 3뎁스
-    // techonology 2뎁스 (상승 하락에 따른 네비게이션 색상)
-    // 초기에 사라지고 2뎁스부터 나타나기
-    // 시총에 따른 크기 비율
-    // 시간체크해서 장시간 아닐 때 디폴트 색상
-    // 다크모드일 때 색상 정하기
-
+    const width = 100;     // 100% 로 변환
+    const height = 100;    // 100% 로 변환
+    const speed = 300;     // 접고 펼쳐지는 speed
+    const testData = data; // data
+    const formatNumber = d3.format(",d"); // number 환 형식으로 정규식
     const x = d3.scaleLinear().domain([0, width]).range([0, width]);
     const y = d3.scaleLinear().domain([0, height]).range([0, height]);
-
     const colorMap = [
         "#4e74b2",
         "#3e5b94",
@@ -37,25 +21,34 @@
         "#e2b752",
     ];
 
+    let chartTree;     // chartTree구조
+    let svg;           // svg
+    let chartBar;      // chart 상단 바
+    let transitioning; // 트랜지셔닝 효과
+
+    // TODO
+    // 11 개 -> 3뎁스
+    // techonology 2뎁스 (상승 하락에 따른 네비게이션 색상)
+    // 상단 바 초기에 사라지고 2뎁스부터 나타나기
+    // 시간체크해서 장시간 아닐 때 디폴트 색상
+    // 다크모드일 때 색상 정하기
+
     const color = d3.scaleOrdinal().range(
-        colorMap.map(function (c) {
+        colorMap.map((c) => {
             c = d3.rgb(c);
-            c.opacity = 0.85;
+            c.opacity = 0.85; // 각 영역 하단 내용이 보이도록 opacity 설정
             return c;
         })
     );
 
+    // 초기 상태 설정
     const initialState = d3
-        .hierarchy(testData)
-        .eachBefore(function (d) {
-            d.id = (d.parent ? d.parent.id + "." : "") + d.data.shortName;
-        })
+        .hierarchy(testData) // testData 사용
+        // .eachBefore((d) => d.id =(d.parent ? d.parent.id + "." : "") + d.data.shortName)
         .sum((d) => d.size)
-        .sort(function (a, b) {
-            return b.height - a.height || b.value - a.value;
-        });
+        .sort((a, b) => b.height - a.height || b.value - a.value);
 
-    // init
+    // initializing 함수
     const valueChartInit = () => {
         if (svg) {
             svg.selectAll("*").remove();
@@ -63,24 +56,11 @@
             svg = d3
                 .select(".js-domain")
                 .append("svg")
-                .attr("width", width + "%")
-                .attr("height", height + "vh")
-                .append("g")
-                .style("shape-rendering", "crispEdges");
+                //.append("g")
 
             chartBar = svg.append("g").attr("class", "chartBar");
-
-            chartBar
-                .append("rect")
-                .attr("y", 0)
-                .attr("width", width)
-                .attr("height", barHeight);
-
-            chartBar
-                .append("text")
-                .attr("x", 6) // 차트 제목 x 좌표
-                .attr("y", 6) // 차트 제목 y 좌표
-                .attr("dy", ".75em"); // 차트 제목 전체 높이
+            chartBar.append("rect").attr("y", 0);
+            chartBar.append("text").attr("x", 6).attr("y", 6).attr("dy", ".7em");
 
             // 차트 트리 분포도
             chartTree = d3
@@ -91,8 +71,6 @@
                     )
                 )
                 .size([width, height])
-                .round(false)
-                .paddingInner(0);
         }
 
         initialize(initialState);
@@ -111,9 +89,7 @@
 
     const accumulate = (defValue) => {
         return (defValue._children = defValue.children)
-            ? (defValue.value = defValue.children.reduce(function (p, v) {
-                  return p + accumulate(v);
-              }, 0))
+            ? (defValue.value = defValue.children.reduce( (p, v) =>  p + accumulate(v), 0))
             : defValue.value;
     };
 
@@ -140,61 +116,24 @@
         const g1 = svg.insert("g", ".chartBar").datum(d).attr("class", "depth");
         const g = g1.selectAll("g").data(d._children).enter().append("g");
 
-        g.filter(function (datum) {
-            return datum._children;
-        })
-            .classed("children", true)
-            .on("click", transition);
+        g.filter((datum) => datum._children).classed("children", true).on("click", transition);
 
-        const children = g
-            .selectAll(".child")
-            .data(function (datum) {
-                return datum._children || [datum];
-            })
-            .enter()
-            .append("g");
+        const children = g.selectAll(".child").data((datum) => datum._children || [datum]).enter().append("g");
 
-        children
-            .append("rect")
-            .attr("class", "child")
-            .call(rectangluar)
-            .append("title")
-            .text(function (datum) {
-                return (
-                    datum.data.shortName +
-                    " (" +
-                    formatNumber(datum.value) +
-                    ")"
-                );
-            });
-
-        children
-            .append("text")
-            .attr("class", "ctext")
-            .text(function (datum) {
-                return datum.data.shortName;
-            })
-            .call(textPositionBottom);
+        children.append("rect").attr("class", "child").call(rectangluar).append("title").text((datum) =>
+            datum.data.shortName + "(" + formatNumber(datum.value) + ")");
 
         g.append("rect").attr("class", "parent").call(rectangluar);
 
-        const t = g.append("text").attr("class", "ptext").attr("dy", ".75em");
+        const t = g.append("text").attr("class", "ptext").attr("dy", ".45em");
 
-        t.append("tspan").text(function (datum) {
-            return datum.data.shortName;
-        });
+        t.append("tspan").text((datum) => datum.data.shortName);
 
-        t.append("tspan")
-            .attr("dy", "1.0em")
-            .text(function (datum) {
-                return formatNumber(datum.value);
-            });
+        t.append("tspan").attr("dy", "1.0em").text((datum) => formatNumber(datum.value));
 
-        t.call(textPositionTop);
+        t.call(textPositionTitle);
 
-        g.selectAll("rect").style("fill", function (datum) {
-            return color(datum.value);
-        });
+        g.selectAll("rect").style("fill",(datum) => color(datum.value));
 
         function transition(datum) {
             if (transitioning || !datum) return;
@@ -207,29 +146,20 @@
 
             svg.style("shape-rendering", null);
 
-            svg.selectAll(".depth").sort((a, b) => {
-                return a.depth - b.depth;
-            });
+            svg.selectAll(".depth").sort((a, b) => a.depth - b.depth);
 
             g2.selectAll("text").style("fill-opacity", 0);
 
-            t1.selectAll(".ptext")
-                .call(textPositionTop)
-                .style("fill-opacity", 0);
-            t2.selectAll(".ptext")
-                .call(textPositionTop)
-                .style("fill-opacity", 1);
-            t1.selectAll(".ctext")
-                .call(textPositionBottom)
-                .style("fill-opacity", 0);
-            t2.selectAll(".ctext")
-                .call(textPositionBottom)
-                .style("fill-opacity", 1);
+            t1.selectAll(".ptext").call(textPositionTitle).style("fill-opacity", 0);
+            t2.selectAll(".ptext").call(textPositionTitle).style("fill-opacity", 1);
+            t1.selectAll(".ctext").call(textPositionNumber).style("fill-opacity", 0);
+            t2.selectAll(".ctext").call(textPositionNumber).style("fill-opacity", 1);
+
             t1.selectAll("rect").call(rectangluar);
             t2.selectAll("rect").call(rectangluar);
 
             // Remove the old node when the transition is finished.
-            t1.remove().on("end", function () {
+            t1.remove().on("end", () => {
                 svg.style("shape-rendering", "crispEdges");
                 transitioning = false;
             });
@@ -237,64 +167,30 @@
         return g;
     };
 
-    const textPositionTop = (datum) => {
-        datum.selectAll("tspan").attr("x", function (d) {
-            return x(d.x0) + 0.5 + "%";
-        });
-        datum
-            .attr("x", function (d) {
-                return x(d.x0) + "%";
-            })
-            .attr("y", function (d) {
-                return y(d.y0) + 1 + "%";
-            });
-        /*  .style("opacity", function (d) {
-                var w = x(d.x1) - x(d.x0);
-                return this.getComputedTextLength() < w ? 1 : 0;
-            }); */
+    const textPositionTitle = (datum) => {
+        datum.selectAll("tspan").attr("x", (d) => x(d.x0) + 0.5 + "%");
+        datum.attr("x",(d) => x(d.x0) + "%").attr("y",(d) => y(d.y0) + 1 + "%")
     };
 
-    const textPositionBottom = (datum) => {
-        datum
-            .attr("x", function (d) {
-                return x(d.x1) - this.getComputedTextLength() + "%";
-            })
-            .attr("y", function (d) {
-                return y(d.y1) + "%";
-            })
-            .style("opacity", function (d) {
-                var w = x(d.x1) - x(d.x0);
-                return this.getComputedTextLength() < w ? 1 : 0;
-            });
+    const textPositionNumber = (datum) => {
+        datum.attr("x", (d) => x(d.x1) - this.getComputedTextLength() + "%").attr("y", (d) => y(d.y1) + "%")
     };
 
     const rectangluar = (rect) => {
-        rect.attr("x", function (d) {
-            return x(d.x0) + "%";
+        rect.attr("x", (d) => x(d.x0) + "%")
+        .attr("y", (d) => y(d.y0) + "%")
+        .attr("width", (d) => {
+            var w = x(d.x1) - x(d.x0);
+            return w + "%";
         })
-            .attr("y", function (d) {
-                return y(d.y0) + "%";
-            })
-            .attr("width", function (d) {
-                var w = x(d.x1) - x(d.x0);
-                return w + "%";
-            })
-            .attr("height", function (d) {
-                var h = y(d.y1) - y(d.y0);
-                return h + "%";
-            });
+        .attr("height", (d) => {
+            var h = y(d.y1) - y(d.y0);
+            return h + "%";
+        });
     };
 
-    const chartName = (datum) => {
-        return datum.parent
-            ? chartName(datum.parent) +
-                  " / " +
-                  datum.data.shortName +
-                  " (" +
-                  formatNumber(datum.value) +
-                  ")"
-            : datum.data.shortName + " (" + formatNumber(datum.value) + ")";
-    };
+    const chartName = (datum) => datum.parent ? chartName(datum.parent) +  " / " + datum.data.shortName + " (" +
+          formatNumber(datum.value) + ")" : datum.data.shortName + " (" + formatNumber(datum.value) + ")";
 
     valueChartInit();
 })();

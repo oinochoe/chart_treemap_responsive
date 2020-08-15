@@ -1,19 +1,11 @@
 @charset "utf-8";
 body { margin:0; position:fixed; top:0; right:0; bottom:0; left:0; user-select: none; }
-
 /* text */
 text { pointer-events: none; }
-.chartBar text { font-weight: bold; fill:#fff; }
+rect { fill: none; stroke: rgba(255,255,255,.3); stroke-width:.5px; }
 
-/* parent, chartBar */
-rect { fill: none; stroke: #fff; }
-rect.parent,
-.chartBar rect { stroke-width: 2px; }
-.chartBar rect { fill: orange; }
+svg{width:100%; height:calc(100vh - 70px); shape-rendering:crispEdges; -webkit-transform:translate3d(0, 70px, 0); transform:translate3d(0, 70px, 0); overflow: visible;}
+.chartBar{width:100%; height:70px; -webkit-transform:translate3d(0, -70px, 0); transform:translate3d(0, -70px, 0);}
+.chartBar rect { width:100%; height:70px; stroke-width: .5px; fill: orange; }
 .chartBar:hover rect { fill: #ee9700; }
-.chartBar rect { cursor: pointer; }
-
-/* children */
-.children rect.parent,
-.children rect.parent { fill: #bbb; fill-opacity: 1; }
-.children:hover rect.child { fill: #bbb; }
+.chartBar text { font-weight: bold; fill:#fff; }
