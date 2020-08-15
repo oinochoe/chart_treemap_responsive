@@ -8,17 +8,17 @@
     const x = d3.scaleLinear().domain([0, width]).range([0, width]);
     const y = d3.scaleLinear().domain([0, height]).range([0, height]);
     const colorMap = [
-        "#4e74b2",
-        "#3e5b94",
-        "#223162",
-        "#282e4a",
-        "#3e3f4c",
-        "#4b4944",
-        "#ae8f59",
-        "#d8ad62",
-        "#dcaf5c",
-        "#dfb257",
         "#e2b752",
+        "#dfb257",
+        "#dcaf5c",
+        "#d8ad62",
+        "#ae8f59",
+        "#4b4944",
+        "#3e3f4c",
+        "#282e4a",
+        "#223162",
+        "#3e5b94",
+        "#4e74b2",
     ];
 
     let chartTree;     // chartTree구조
@@ -32,14 +32,6 @@
     // 상단 바 초기에 사라지고 2뎁스부터 나타나기
     // 시간체크해서 장시간 아닐 때 디폴트 색상
     // 다크모드일 때 색상 정하기
-
-    const color = d3.scaleOrdinal().range(
-        colorMap.map((c) => {
-            c = d3.rgb(c);
-            c.opacity = 0.85; // 각 영역 하단 내용이 보이도록 opacity 설정
-            return c;
-        })
-    );
 
     // 초기 상태 설정
     const initialState = d3
@@ -133,7 +125,16 @@
 
         t.call(textPositionTitle);
 
-        g.selectAll("rect").style("fill",(datum) => color(datum.value));
+        const categories = d.children.map(datum => datum.value)
+        const color = d3.scaleLinear().domain(categories).range(
+            colorMap.map((c) => {
+                c = d3.rgb(c);
+                c.opacity = 0.85; // 각 영역 하단 내용이 보이도록 opacity 설정
+                return c;
+            })
+        );
+
+        g.selectAll("rect").style("fill", (datum) => color(datum.value));
 
         function transition(datum) {
             if (transitioning || !datum) return;
