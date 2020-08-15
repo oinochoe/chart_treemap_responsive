@@ -52,7 +52,7 @@
 
             chartBar = svg.append("g").attr("class", "chartBar");
             chartBar.append("rect").attr("y", 0);
-            chartBar.append("text").attr("x", 6).attr("y", 6).attr("dy", ".7em");
+            chartBar.append("text").attr("x", 6).attr("y", 6).attr("dy", "1.2˜em");
 
             // 차트 트리 분포도
             chartTree = d3
