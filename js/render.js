@@ -52,7 +52,7 @@
 
             chartBar = svg.append("g").attr("class", "chartBar");
             chartBar.append("rect").attr("y", 0);
-            chartBar.append("text").attr("x", 6).attr("y", 6).attr("dy", "1.2˜em");
+            chartBar.append("text").attr("x", 10).attr("y", 6).attr("dy", "1.2em");
 
             // 차트 트리 분포도
             chartTree = d3
@@ -138,6 +138,13 @@
 
         function transition(datum) {
             if (transitioning || !datum) return;
+            if(datum.depth == 0) {
+                document.querySelector('.js-domain').classList.remove('active');
+                chartBar.select('text').attr('x', 10);
+            } else {
+                document.querySelector('.js-domain').classList.add('active');
+                chartBar.select('text').attr('x', 44)
+            }
             transitioning = true;
             const g2 = chartDisplay(datum),
                 t1 = g1.transition().duration(speed),
