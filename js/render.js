@@ -27,7 +27,6 @@
     let svg = '';           // svg
     let chartBar = '';      // chart 상단 바
     let transitioning = false; // 트랜지셔닝 효과
-    let finalDepth = 0;
 
     // TODO
     // 11 개 -> 3뎁스
@@ -147,10 +146,6 @@
 
         // 데이터에 따른 트랜지션 설정
         function transition(datum) {
-            if (datum.depth == 2) {
-                alert(datum.depth);
-                return;
-            }
             if (transitioning || !datum) return;
             if(datum.depth == 0) {
                 document.querySelector('.js-domain').classList.remove('active');
@@ -183,7 +178,6 @@
             // Remove the old node when the transition is finished.
             t1.remove().on("end", () => {
                 svg.style("shape-rendering", "crispEdges");
-                finalDepth = datum.depth;
                 transitioning = false;
             });
         }
@@ -212,7 +206,7 @@
         .attr("height", (d) => {
             var h = y(d.y1) - y(d.y0);
             return h + "%";
-        });
+        })
     };
 
     // chart name chartBar에 노출
