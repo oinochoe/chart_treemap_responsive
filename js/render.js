@@ -123,7 +123,7 @@
         children.append("rect").attr("class", "child").call(rectangluar).append("title").text((datum) =>
             datum.data.shortName + "(" + formatNumber(datum.value) + ")");
 
-        g.append("rect").attr("class", "parent").call(rectangluar);
+        g.append("rect").attr("class", "parent").call(rectangluar).on("click", moveLink);
 
         const t = g.append("text").attr("class", "ptext").attr("dy", ".45em");
 
@@ -144,9 +144,17 @@
 
         g.selectAll("rect").style("fill", (datum) => color(datum.value));
 
+        function moveLink(datum) {
+            if(datum.depth == 2) {
+                window.open('http://valuesight.io/#' +datum.value)
+                return;
+            }
+        }
+
         // 데이터에 따른 트랜지션 설정
         function transition(datum) {
             if (transitioning || !datum) return;
+            if (datum.depth >= 2) return;
             if(datum.depth == 0) {
                 document.querySelector('.js-domain').classList.remove('active');
                 chartBar.select('text').attr('x', 10);
