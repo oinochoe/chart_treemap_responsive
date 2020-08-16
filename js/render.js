@@ -5,8 +5,10 @@
     const speed = 300;     // 접고 펼쳐지는 speed
     const testData = data; // data
     const formatNumber = d3.format(",d"); // number 환 형식으로 정규식
+    // x 좌표 y좌표
     const x = d3.scaleLinear().domain([0, width]).range([0, width]);
     const y = d3.scaleLinear().domain([0, height]).range([0, height]);
+    // color 분포
     const colorMap = [
         "#e2b752",
         "#dfb257",
@@ -50,6 +52,7 @@
                 .append("svg")
                 //.append("g")
 
+            // chartBar 설정
             chartBar = svg.append("g").attr("class", "chartBar");
             chartBar.append("rect").attr("y", 0);
             chartBar.append("text").attr("x", 10).attr("y", 6).attr("dy", "1.2em");
@@ -79,12 +82,14 @@
         defValue.depth = 0;
     };
 
+    // 누적 value 할당
     const accumulate = (defValue) => {
         return (defValue._children = defValue.children)
             ? (defValue.value = defValue.children.reduce( (p, v) =>  p + accumulate(v), 0))
             : defValue.value;
     };
 
+    // 레이아웃 조절
     const chartLayout = (defValue) => {
         if (defValue._children) {
             defValue._children.forEach((c) => {
@@ -99,13 +104,16 @@
     };
 
     const chartDisplay = (d) => {
+        // chartBar 이벤트 설정
         chartBar
             .datum(d.parent)
             .on("click", transition)
             .select("text")
             .text(chartName(d));
 
+        // 차트바에 그룹 설정
         const g1 = svg.insert("g", ".chartBar").datum(d).attr("class", "depth");
+        // 그룹 전체 잡기
         const g = g1.selectAll("g").data(d._children).enter().append("g");
 
         g.filter((datum) => datum._children).classed("children", true).on("click", transition);
@@ -136,6 +144,7 @@
 
         g.selectAll("rect").style("fill", (datum) => color(datum.value));
 
+        // 데이터에 따른 트랜지션 설정
         function transition(datum) {
             if (transitioning || !datum) return;
             if(datum.depth == 0) {
@@ -175,15 +184,18 @@
         return g;
     };
 
+    // text 중에 title 위치
     const textPositionTitle = (datum) => {
         datum.selectAll("tspan").attr("x", (d) => x(d.x0) + 0.5 + "%");
         datum.attr("x",(d) => x(d.x0) + "%").attr("y",(d) => y(d.y0) + 1 + "%")
     };
 
+    // text 중에 숫자 위치
     const textPositionNumber = (datum) => {
         datum.attr("x", (d) => x(d.x1) - this.getComputedTextLength() + "%").attr("y", (d) => y(d.y1) + "%")
     };
 
+    // 사각형 분포
     const rectangluar = (rect) => {
         rect.attr("x", (d) => x(d.x0) + "%")
         .attr("y", (d) => y(d.y0) + "%")
@@ -197,6 +209,7 @@
         });
     };
 
+    // chart name chartBar에 노출
     const chartName = (datum) => datum.parent ? chartName(datum.parent) +  " / " + datum.data.shortName + " (" +
           formatNumber(datum.value) + ")" : datum.data.shortName + " (" + formatNumber(datum.value) + ")";
 
