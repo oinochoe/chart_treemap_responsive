@@ -23,10 +23,11 @@
         "#4e74b2",
     ];
 
-    let chartTree;     // chartTree구조
-    let svg;           // svg
-    let chartBar;      // chart 상단 바
-    let transitioning; // 트랜지셔닝 효과
+    let chartTree = '';     // chartTree구조
+    let svg = '';           // svg
+    let chartBar = '';      // chart 상단 바
+    let transitioning = false; // 트랜지셔닝 효과
+    let finalDepth = 0;
 
     // TODO
     // 11 개 -> 3뎁스
@@ -146,7 +147,11 @@
 
         // 데이터에 따른 트랜지션 설정
         function transition(datum) {
-            if (transitioning || !datum) {alert('끝났따 이노마 ㅁㅅㅁ'); return;}
+            if (datum.depth == 2) {
+                alert(datum.depth);
+                return;
+            }
+            if (transitioning || !datum) return;
             if(datum.depth == 0) {
                 document.querySelector('.js-domain').classList.remove('active');
                 chartBar.select('text').attr('x', 10);
@@ -178,6 +183,7 @@
             // Remove the old node when the transition is finished.
             t1.remove().on("end", () => {
                 svg.style("shape-rendering", "crispEdges");
+                finalDepth = datum.depth;
                 transitioning = false;
             });
         }
