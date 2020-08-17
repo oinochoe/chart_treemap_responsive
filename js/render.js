@@ -154,7 +154,7 @@
         // 데이터에 따른 트랜지션 설정
         function transition(datum) {
             if (transitioning || !datum) return;
-            if (datum.depth >= 2) return;
+            if (datum.depth >= 3) return;
             if(datum.depth == 0) {
                 document.querySelector('.js-domain').classList.remove('active');
                 chartBar.select('text').attr('x', 10);
