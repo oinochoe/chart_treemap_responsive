@@ -116,7 +116,7 @@
         // 그룹 전체 잡기
         const g = g1.selectAll("g").data(d._children).enter().append("g");
         // Link depth 설정
-        const linkDepth = 3;
+        const linkDepth = g.filter((datum) => datum._children)._groups[0].length === 0;
 
         g.filter((datum) => datum._children).classed("children", true).on("click", transition);
 
@@ -147,7 +147,7 @@
         g.selectAll("rect").style("fill", (datum) => color(datum.value));
 
         function moveLink(datum) {
-            if (datum.depth == linkDepth) {
+            if (linkDepth) {
                 window.open("http://valuesight.io/#" + datum.value);
                 return;
             }
@@ -156,7 +156,6 @@
         // 데이터에 따른 트랜지션 설정
         function transition(datum) {
             if (transitioning || !datum) return;
-            if (datum.depth >= linkDepth) return;
             if(datum.depth == 0) {
                 document.querySelector('.js-domain').classList.remove('active');
                 chartBar.select('text').attr('x', 10);
