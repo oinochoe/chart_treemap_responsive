@@ -115,6 +115,8 @@
         const g1 = svg.insert("g", ".chartBar").datum(d).attr("class", "depth");
         // 그룹 전체 잡기
         const g = g1.selectAll("g").data(d._children).enter().append("g");
+        // Link depth 설정
+        const linkDepth = 3;
 
         g.filter((datum) => datum._children).classed("children", true).on("click", transition);
 
@@ -145,8 +147,8 @@
         g.selectAll("rect").style("fill", (datum) => color(datum.value));
 
         function moveLink(datum) {
-            if(datum.depth == 2) {
-                window.open('http://valuesight.io/#' +datum.value)
+            if (datum.depth == linkDepth) {
+                window.open("http://valuesight.io/#" + datum.value);
                 return;
             }
         }
@@ -154,7 +156,7 @@
         // 데이터에 따른 트랜지션 설정
         function transition(datum) {
             if (transitioning || !datum) return;
-            if (datum.depth >= 3) return;
+            if (datum.depth >= linkDepth) return;
             if(datum.depth == 0) {
                 document.querySelector('.js-domain').classList.remove('active');
                 chartBar.select('text').attr('x', 10);
