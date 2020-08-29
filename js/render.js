@@ -1,8 +1,8 @@
 (function () {
     "use strict";
-    const width = 100;     // 100% 로 변환
-    const height = 100;    // 100% 로 변환
-    const speed = 300;     // 접고 펼쳐지는 speed
+    const width = 100; // 100% 로 변환
+    const height = 100; // 100% 로 변환
+    const speed = 300; // 접고 펼쳐지는 speed
     const testData = data; // data
     const formatNumber = d3.format(",d"); // number 환 형식으로 정규식
     // x 좌표 y좌표
@@ -23,9 +23,9 @@
         "#4e74b2",
     ];
 
-    let chartTree = '';     // chartTree구조
-    let svg = '';           // svg
-    let chartBar = '';      // chart 상단 바
+    let chartTree = ""; // chartTree구조
+    let svg = ""; // svg
+    let chartBar = ""; // chart 상단 바
     let transitioning = false; // 트랜지셔닝 효과
 
     // TODO
@@ -47,15 +47,17 @@
         if (svg) {
             svg.selectAll("*").remove();
         } else {
-            svg = d3
-                .select(".js-domain")
-                .append("svg")
-                //.append("g")
+            svg = d3.select(".js-domain").append("svg");
+            //.append("g")
 
             // chartBar 설정
             chartBar = svg.append("g").attr("class", "chartBar");
             chartBar.append("rect").attr("y", 0);
-            chartBar.append("text").attr("x", 10).attr("y", 6).attr("dy", "1.2em");
+            chartBar
+                .append("text")
+                .attr("x", 10)
+                .attr("y", 6)
+                .attr("dy", "1.2em");
 
             // 차트 트리 분포도
             chartTree = d3
@@ -65,7 +67,7 @@
                         (height + "%" / width + "%") * 0.5 * (1 + Math.sqrt(5))
                     )
                 )
-                .size([width, height])
+                .size([width, height]);
         }
 
         initialize(initialState);
@@ -85,7 +87,10 @@
     // 누적 value 할당
     const accumulate = (defValue) => {
         return (defValue._children = defValue.children)
-            ? (defValue.value = defValue.children.reduce( (p, v) =>  p + accumulate(v), 0))
+            ? (defValue.value = defValue.children.reduce(
+                  (p, v) => p + accumulate(v),
+                  0
+              ))
             : defValue.value;
     };
 
@@ -116,33 +121,55 @@
         // 그룹 전체 잡기
         const g = g1.selectAll("g").data(d._children).enter().append("g");
         // Link depth 설정
-        const linkDepth = g.filter((datum) => datum._children)._groups[0].length === 0;
+        const linkDepth =
+            g.filter((datum) => datum._children)._groups[0].length === 0;
 
-        g.filter((datum) => datum._children).classed("children", true).on("click", transition);
+        g.filter((datum) => datum._children)
+            .classed("children", true)
+            .on("click", transition);
 
-        const children = g.selectAll(".child").data((datum) => datum._children || [datum]).enter().append("g");
+        const children = g
+            .selectAll(".child")
+            .data((datum) => datum._children || [datum])
+            .enter()
+            .append("g");
 
-        children.append("rect").attr("class", "child").call(rectangluar).append("title").text((datum) =>
-            datum.data.shortName + "(" + formatNumber(datum.value) + ")");
+        children
+            .append("rect")
+            .attr("class", "child")
+            .call(rectangluar)
+            .append("title")
+            .text(
+                (datum) =>
+                    datum.data.shortName + "(" + formatNumber(datum.value) + ")"
+            );
 
-        g.append("rect").attr("class", "parent").call(rectangluar).on("click", moveLink);
+        g.append("rect")
+            .attr("class", "parent")
+            .call(rectangluar)
+            .on("click", moveLink);
 
         const t = g.append("text").attr("class", "ptext").attr("dy", ".45em");
 
         t.append("tspan").text((datum) => datum.data.shortName);
 
-        t.append("tspan").attr("dy", "1.0em").text((datum) => formatNumber(datum.value));
+        t.append("tspan")
+            .attr("dy", "1.0em")
+            .text((datum) => formatNumber(datum.value));
 
         t.call(textPositionTitle);
 
-        const categories = d.children.map(datum => datum.value)
-        const color = d3.scaleLinear().domain(categories).range(
-            colorMap.map((c) => {
-                c = d3.rgb(c);
-                c.opacity = 0.85; // 각 영역 하단 내용이 보이도록 opacity 설정
-                return c;
-            })
-        );
+        const categories = d.children.map((datum) => datum.value);
+        const color = d3
+            .scaleLinear()
+            .domain(categories)
+            .range(
+                colorMap.map((c) => {
+                    c = d3.rgb(c);
+                    c.opacity = 0.85; // 각 영역 하단 내용이 보이도록 opacity 설정
+                    return c;
+                })
+            );
 
         g.selectAll("rect").style("fill", (datum) => color(datum.value));
 
@@ -156,12 +183,12 @@
         // 데이터에 따른 트랜지션 설정
         function transition(datum) {
             if (transitioning || !datum) return;
-            if(datum.depth == 0) {
-                document.querySelector('.js-domain').classList.remove('active');
-                chartBar.select('text').attr('x', 10);
+            if (datum.depth == 0) {
+                document.querySelector(".js-domain").classList.remove("active");
+                chartBar.select("text").attr("x", 10);
             } else {
-                document.querySelector('.js-domain').classList.add('active');
-                chartBar.select('text').attr('x', 44)
+                document.querySelector(".js-domain").classList.add("active");
+                chartBar.select("text").attr("x", 44);
             }
             transitioning = true;
             const g2 = chartDisplay(datum),
@@ -176,10 +203,18 @@
 
             g2.selectAll("text").style("fill-opacity", 0);
 
-            t1.selectAll(".ptext").call(textPositionTitle).style("fill-opacity", 0);
-            t2.selectAll(".ptext").call(textPositionTitle).style("fill-opacity", 1);
-            t1.selectAll(".ctext").call(textPositionNumber).style("fill-opacity", 0);
-            t2.selectAll(".ctext").call(textPositionNumber).style("fill-opacity", 1);
+            t1.selectAll(".ptext")
+                .call(textPositionTitle)
+                .style("fill-opacity", 0);
+            t2.selectAll(".ptext")
+                .call(textPositionTitle)
+                .style("fill-opacity", 1);
+            t1.selectAll(".ctext")
+                .call(textPositionNumber)
+                .style("fill-opacity", 0);
+            t2.selectAll(".ctext")
+                .call(textPositionNumber)
+                .style("fill-opacity", 1);
 
             t1.selectAll("rect").call(rectangluar);
             t2.selectAll("rect").call(rectangluar);
@@ -196,31 +231,42 @@
     // text 중에 title 위치
     const textPositionTitle = (datum) => {
         datum.selectAll("tspan").attr("x", (d) => x(d.x0) + 0.5 + "%");
-        datum.attr("x",(d) => x(d.x0) + "%").attr("y",(d) => y(d.y0) + 1 + "%")
+        datum
+            .attr("x", (d) => x(d.x0) + "%")
+            .attr("y", (d) => y(d.y0) + 1 + "%");
     };
 
     // text 중에 숫자 위치
     const textPositionNumber = (datum) => {
-        datum.attr("x", (d) => x(d.x1) - this.getComputedTextLength() + "%").attr("y", (d) => y(d.y1) + "%")
+        datum
+            .attr("x", (d) => x(d.x1) - this.getComputedTextLength() + "%")
+            .attr("y", (d) => y(d.y1) + "%");
     };
 
     // 사각형 분포
     const rectangluar = (rect) => {
         rect.attr("x", (d) => x(d.x0) + "%")
-        .attr("y", (d) => y(d.y0) + "%")
-        .attr("width", (d) => {
-            var w = x(d.x1) - x(d.x0);
-            return w + "%";
-        })
-        .attr("height", (d) => {
-            var h = y(d.y1) - y(d.y0);
-            return h + "%";
-        })
+            .attr("y", (d) => y(d.y0) + "%")
+            .attr("width", (d) => {
+                var w = x(d.x1) - x(d.x0);
+                return w + "%";
+            })
+            .attr("height", (d) => {
+                var h = y(d.y1) - y(d.y0);
+                return h + "%";
+            });
     };
 
     // chart name chartBar에 노출
-    const chartName = (datum) => datum.parent ? chartName(datum.parent) +  " / " + datum.data.shortName + " (" +
-          formatNumber(datum.value) + ")" : datum.data.shortName + " (" + formatNumber(datum.value) + ")";
+    const chartName = (datum) =>
+        datum.parent
+            ? chartName(datum.parent) +
+              " / " +
+              datum.data.shortName +
+              " (" +
+              formatNumber(datum.value) +
+              ")"
+            : datum.data.shortName + " (" + formatNumber(datum.value) + ")";
 
     valueChartInit();
 })();
