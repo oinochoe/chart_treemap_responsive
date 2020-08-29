@@ -42,6 +42,8 @@
         .sum((d) => d.size)
         .sort((a, b) => b.height - a.height || b.value - a.value);
 
+    console.log(testData);
+
     // initializing 함수
     const valueChartInit = () => {
         if (svg) {

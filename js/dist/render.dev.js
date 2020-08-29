@@ -41,7 +41,8 @@
     return d.size;
   }).sort(function (a, b) {
     return b.height - a.height || b.value - a.value;
-  }); // initializing 함수
+  });
+  console.log(testData); // initializing 함수
 
   var valueChartInit = function valueChartInit() {
     if (svg) {
